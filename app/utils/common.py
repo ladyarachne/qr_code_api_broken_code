@@ -17,12 +17,21 @@ def setup_logging():
     Sets up logging for the application using a configuration file.
     This ensures standardized logging across the entire application.
     """
-    # Construct the path to 'logging.conf', assuming it's in the project's root.
-    logging_config_path = os.path.join(os.path.dirname(__file__), '..', '..', 'logging.conf')
-    # Normalize the path to handle any '..' correctly.
-    normalized_path = os.path.normpath(logging_config_path)
-    # Apply the logging configuration.
-    logging.config.fileConfig(normalized_path, disable_existing_loggers=False)
+    try:
+        # Construct the path to 'logging.conf', assuming it's in the project's root.
+        logging_config_path = os.path.join(os.path.dirname(__file__), '..', '..', 'logging.conf')
+        # Normalize the path to handle any '..' correctly.
+        normalized_path = os.path.normpath(logging_config_path)
+        # Apply the logging configuration.
+        logging.config.fileConfig(normalized_path, disable_existing_loggers=False)
+        logging.info("Logging setup completed successfully")
+    except Exception as e:
+        logging.error(f"Failed to configure logging: {e}")
+        # Set up a basic configuration as fallback
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        )
 
 def authenticate_user(username: str, password: str):
     """
@@ -66,7 +75,7 @@ def encode_url_to_filename(url):
     Encodes a URL into a base64 string safe for filenames, after validating and sanitizing.
     Removes padding to ensure filename compatibility.
     """
-    sanitizd_url = validate_and_sanitize_url(str(url))
+    sanitized_url = validate_and_sanitize_url(str(url))
     if sanitized_url is None:
         raise ValueError("Provided URL is invalid and cannot be encoded.")
     encoded_bytes = base64.urlsafe_b64encode(sanitized_url.encode('utf-8'))
@@ -81,7 +90,7 @@ def decode_filename_to_url(encoded_str: str) -> str:
     padding_needed = 4 - (len(encoded_str) % 4)
     if padding_needed:
         encoded_str += "=" * padding_needed
-    decoded_bytes = base64.urlsafe_b6decode(encoded_str)
+    decoded_bytes = base64.urlsafe_b64decode(encoded_str)
     return decoded_bytes.decode('utf-8')
 
 def generate_links(action: str, qr_filename: str, base_api_url: str, download_url: str) -> List[dict]:

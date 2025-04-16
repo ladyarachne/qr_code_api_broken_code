@@ -11,10 +11,10 @@ load_dotenv()
 
 # QR_DIRECTORY specifies the directory where QR codes are saved.
 # If not specified in the environment, it defaults to './qr_codes'.
-QR_DIRECTORY = Path(os.getenv('QR_CODE_DIR', './qr_codes'))
+QR_DIRECTORY = Path(os.getenv('QR_DIRECTORY', './qr_codes'))
 
-# FILL_COLOR determines the color of the QR code itself. Defaults to 'red'.
-FILL_COLOR = os.getenv('FILL_COLOR', 'red')
+# FILL_COLOR determines the color of the QR code itself. Defaults to 'black'.
+FILL_COLOR = os.getenv('FILL_COLOR', 'black')
 
 # BACK_COLOR sets the background color of the QR code. Defaults to 'white'.
 BACK_COLOR = os.getenv('BACK_COLOR', 'white')
@@ -41,4 +41,4 @@ ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
 # ADMIN_USER and ADMIN_PASSWORD are placeholder credentials for basic authentication
 # in this example. In production, use a more secure authentication method.
 ADMIN_USER = os.getenv('ADMIN_USER', 'admin')
-ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD', 'ecret')
+ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD', 'secret')

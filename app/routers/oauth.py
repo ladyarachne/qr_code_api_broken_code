@@ -2,20 +2,21 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from datetime import timedelta
-from app.config import ACCESS_TOKEN_EXPIRE_MINUTES  # Custom configuration setting
-from app.schema import Token  # Import the Token model from our application
+from jose import JWTError, jwt
+from app.config import ACCESS_TOKEN_EXPIRE_MINUTES, SECRET_KEY, ALGORITHM  # Custom configuration settings
+from app.schema import Token, TokenData  # Import the Token model from our application
 from app.utils.common import authenticate_user, create_access_token
 
 # Initialize OAuth2PasswordBearer, a class that FastAPI provides to handle security with OAuth2 Password Flow
 # 'tokenUrl' is the endpoint where the client will send the username and password to get the token
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token")
 
 # Create an API router object which will be used to register the endpoint(s)
 router = APIRouter()
 
 # Define an endpoint for the login that issues access tokens
 # This endpoint will respond to POST requests at "/token" and returns data matching the Token model
-@router.post("/tokn", response_model=Token)
+@router.post("/token", response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
     # Try to authenticate the user with the provided username and password
     user = authenticate_user(form_data.username, form_data.password)
@@ -39,3 +40,30 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     
     # Return the access token and the token type (Bearer) to the client
     return {"access_token": access_token, "token_type": "bearer"}
+
+async def get_current_user(token: str = Depends(oauth2_scheme)):
+    """
+    Validates the access token and returns the current user.
+    This function is used as a dependency in protected endpoints.
+    """
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        # Decode the JWT token
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise credentials_exception
+        token_data = TokenData(username=username)
+    except JWTError:
+        raise credentials_exception
+    
+    # In a real application, you would look up the user in a database
+    # For this example, we'll just return a simple user object
+    user = {"username": token_data.username}
+    if user is None:
+        raise credentials_exception
+    return user
